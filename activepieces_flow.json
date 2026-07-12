@@ -1,0 +1,93 @@
+{
+  "created": "1720780800000",
+  "updated": "1720780800000",
+  "name": "Quick Heal QA Daily Automation",
+  "description": "Daily 9AM scan of all Quick Heal/Seqrite websites, AI summary, HTML report emailed and posted to Teams.",
+  "tags": ["qa", "quickheal"],
+  "pieces": [
+    "@activepieces/piece-schedule",
+    "@activepieces/piece-http",
+    "@activepieces/piece-gmail",
+    "@activepieces/piece-microsoft-teams"
+  ],
+  "template": {
+    "displayName": "Quick Heal QA Daily Automation",
+    "valid": true,
+    "trigger": {
+      "name": "trigger",
+      "valid": true,
+      "displayName": "Every day at 9:00 AM",
+      "type": "PIECE_TRIGGER",
+      "settings": {
+        "pieceName": "@activepieces/piece-schedule",
+        "pieceVersion": "~0.3.0",
+        "pieceType": "OFFICIAL",
+        "packageType": "REGISTRY",
+        "triggerName": "cron_expression",
+        "input": {
+          "cronExpression": "0 9 * * *",
+          "timezone": "Asia/Kolkata"
+        },
+        "inputUiInfo": { "customizedInputs": {} }
+      },
+      "nextAction": {
+        "name": "step_1",
+        "displayName": "Run Daily QA Scan",
+        "type": "PIECE",
+        "valid": true,
+        "settings": {
+          "pieceName": "@activepieces/piece-http",
+          "pieceVersion": "~0.7.0",
+          "pieceType": "OFFICIAL",
+          "packageType": "REGISTRY",
+          "actionName": "send_request",
+          "input": {
+            "method": "POST",
+            "url": "https://YOUR-RENDER-APP.onrender.com/run-daily-qa",
+            "headers": { "Content-Type": "application/json" },
+            "body": {},
+            "timeout": 120000
+          },
+          "inputUiInfo": { "customizedInputs": {} }
+        },
+        "nextAction": {
+          "name": "step_2",
+          "displayName": "Email QA Report (Gmail)",
+          "type": "PIECE",
+          "valid": true,
+          "settings": {
+            "pieceName": "@activepieces/piece-gmail",
+            "pieceVersion": "~0.6.0",
+            "pieceType": "OFFICIAL",
+            "packageType": "REGISTRY",
+            "actionName": "send_email",
+            "input": {
+              "receiver": ["qa-team@quickheal.com"],
+              "subject": "Quick Heal Daily QA Health Report",
+              "body": "{{step_1['body']['html']}}",
+              "bodyIsHtml": true
+            },
+            "inputUiInfo": { "customizedInputs": {} }
+          },
+          "nextAction": {
+            "name": "step_3",
+            "displayName": "Post to Microsoft Teams",
+            "type": "PIECE",
+            "valid": true,
+            "settings": {
+              "pieceName": "@activepieces/piece-microsoft-teams",
+              "pieceVersion": "~0.4.0",
+              "pieceType": "OFFICIAL",
+              "packageType": "REGISTRY",
+              "actionName": "send_channel_message",
+              "input": {
+                "message": "Quick Heal Daily QA report is ready. Critical issues detected: {{step_1['body']['has_critical']}}"
+              },
+              "inputUiInfo": { "customizedInputs": {} }
+            }
+          }
+        }
+      }
+    }
+  }
+}

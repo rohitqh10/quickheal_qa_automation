@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: quickheal-qa-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: QA_AI_PROVIDER
+        value: groq
